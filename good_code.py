@@ -82,13 +82,7 @@ class ParquetDataSaver(DataSaver):
         df.to_parquet(path)
 
 
-class DataProcessor(ABC):
-    @abstractmethod
-    def process(self, path: str, output_path: str) -> None:
-        pass
-
-
-class ExampleDataProcessor(DataProcessor):
+class DataProcessor:
     def __init__(
         self,
         feature_processors: List[FeatureProcessor],
@@ -101,6 +95,7 @@ class ExampleDataProcessor(DataProcessor):
 
     def process(self, path: str, output_path: str) -> None:
         df = self.data_loader.load_data(path)
+        logging.info(f"Raw data: {df}")
         processed_df = pd.concat(
             [feature_processor.process(df) for feature_processor in self.feature_processors],
             axis=1
@@ -110,11 +105,11 @@ class ExampleDataProcessor(DataProcessor):
 
 
 if __name__ == "__main__":
-    processor = ExampleDataProcessor(
+    processor = DataProcessor(
         feature_processors=[
             Normalizer(feature_names=["feature_a"]),
             Encoder(encoder=LabelEncoder(), feature_names=["feature_b"]),
-            NaFiller(feature_names=["feature_c"], value=5)
+            NaFiller(feature_names=["feature_c"], value=-1)
         ],
         data_loader=ParquetDataLoader(),
         data_saver=ParquetDataSaver()
